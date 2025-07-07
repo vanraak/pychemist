@@ -27,7 +27,7 @@ import pychemist as pch
 
 # Example 1: Lagging a variable
 ```python
-df = pch.time_shift(variables=["sales"], dataframe=data, id="company", time="year", shift=1)
+df = pch.time_shift(dataframe=df, variables=["sales"], id="company", time="year", shift=1)
 ```
 
 # Example 2: Conditional mutation
