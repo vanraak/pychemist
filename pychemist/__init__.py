@@ -1,7 +1,7 @@
 import pandas as pd
 from scipy.stats import ttest_ind
 
-def time_shift(variables, dataframe, id='id', time='time', shift=1):
+def time_shift(dataframe, variables, id='id', time='time', shift=1):
     """
     Creates lagged or lead variables for the specified variables in the time series data.
 
@@ -102,7 +102,7 @@ def summary_no_fe(model):
     # Print the filtered summary
     return filtered_summary
 
-def mutate(dataframe, query_str, column, new_value, *, inplace=False):
+def mutate(dataframe, query_str, column, value, other=None, *, inplace=False):
     """
     Conditionally update values in a DataFrame column based on a query string.
 
@@ -114,8 +114,10 @@ def mutate(dataframe, query_str, column, new_value, *, inplace=False):
         The name of the column to update or create.
     query_str : str
         A pandas query string defining the condition for rows to update.
-    new_value : scalar or array-like
-        The new value(s) to assign to the selected rows in `column`.
+    value : scalar or array-like
+        The new value(s) to assign to rows where the condition is True.
+    other : scalar or array-like, optional
+        The new value(s) to assign to rows where the condition is False.	
     inplace : bool, default False
         If True, modify the DataFrame in place and return None.
         If False, return a modified copy of the DataFrame.
@@ -131,19 +133,24 @@ def mutate(dataframe, query_str, column, new_value, *, inplace=False):
 
     df = dataframe if inplace else dataframe.copy()
 
-    condition = df.query(query_str).index
-    df.loc[condition, column] = new_value
-    
+    match_idx = df.query(query_str).index
+    non_match_idx = df.index.difference(match_idx)
+
+
+    df.loc[match_idx, column] = value
+    if other is not None:
+        df.loc[non_match_idx, column] = other
+
     if not inplace:
         return df
     
 # Define the custom accessor
-@pd.api.extensions.register_dataframe_accessor("chem")
+@pd.api.extensions.register_dataframe_accessor("pch")
 class Pd_Pychemist:
     def __init__(self, pandas_obj):
         self._obj = pandas_obj
     
-    def mutate(self, query_str, column, new_value, *, inplace=False):
+    def mutate(self, query_str, column, value, other=None, *, inplace=False):
         """
         Conditionally update values in a DataFrame column based on a query string.
 
@@ -153,8 +160,10 @@ class Pd_Pychemist:
             The name of the column to update or create.
         query_str : str
             A pandas query string defining the condition for rows to update.
-        new_value : scalar or array-like
-            The new value(s) to assign to the selected rows in `column`.
+        value : scalar or array-like
+            The new value(s) to assign to rows where the condition is True.
+        other : scalar or array-like, optional
+            The new value(s) to assign to rows where the condition is False.
         inplace : bool, default False
             If True, modify the DataFrame in place and return None.
             If False, return a modified copy of the DataFrame.
@@ -172,8 +181,12 @@ class Pd_Pychemist:
         if not inplace:
             df = df.copy()
 
-        condition = df.query(query_str).index
-        df.loc[condition, column] = new_value
-        
+        match_idx = df.query(query_str).index
+        non_match_idx = df.index.difference(match_idx)
+
+        df.loc[match_idx, column] = value
+        if other is not None:
+            df.loc[non_match_idx, column] = other
+
         if not inplace:
             return df
