@@ -1,0 +1,36 @@
+{% set name = "pychemist" %}
+{% set version = os.environ.get("RELEASE_VERSION", "0.0.0") %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  git_url: https://github.com/jraak/{{ name }}.git
+  git_tag: v{{ version }}
+
+build:
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  number: 0
+
+requirements:
+  host:
+    - python >=3.8
+    - pip
+  run:
+    - python >=3.8
+    - pandas >=2.0
+
+test:
+  imports:
+    - pychemist
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  summary: Transform raw data into insights.
+  license: MIT
+  license_file: LICENSE
