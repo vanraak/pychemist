@@ -1,4 +1,5 @@
 import pandas as pd
+import warnings
 from scipy.stats import ttest_ind
 
 def time_shift(dataframe, variables, id='id', time='time', shift=1):
@@ -143,50 +144,56 @@ def mutate(dataframe, query_str, column, value, other=None, *, inplace=False):
 
     if not inplace:
         return df
-    
-# Define the custom accessor
-@pd.api.extensions.register_dataframe_accessor("pch")
-class Pd_Pychemist:
-    def __init__(self, pandas_obj):
-        self._obj = pandas_obj
-    
-    def mutate(self, query_str, column, value, other=None, *, inplace=False):
-        """
-        Conditionally update values in a DataFrame column based on a query string.
 
-        Parameters:
-        -----------
-        column : str
-            The name of the column to update or create.
-        query_str : str
-            A pandas query string defining the condition for rows to update.
-        value : scalar or array-like
-            The new value(s) to assign to rows where the condition is True.
-        other : scalar or array-like, optional
-            The new value(s) to assign to rows where the condition is False.
-        inplace : bool, default False
-            If True, modify the DataFrame in place and return None.
-            If False, return a modified copy of the DataFrame.
-
-        Returns:
-        --------
-        pd.DataFrame or None
-            Returns the modified copy if `inplace=False`, otherwise returns None.
-        """
-        if not isinstance(inplace, bool):
-            raise TypeError(f"'inplace' must be a bool, got {type(inplace).__name__}")
-
-        df = self._obj
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*registration of accessor '.*",
+        category=UserWarning,
+    )    
+    # Define the custom accessor
+    @pd.api.extensions.register_dataframe_accessor("pch")
+    class Pd_Pychemist:
+        def __init__(self, pandas_obj):
+            self._obj = pandas_obj
         
-        if not inplace:
-            df = df.copy()
+        def mutate(self, query_str, column, value, other=None, *, inplace=False):
+            """
+            Conditionally update values in a DataFrame column based on a query string.
 
-        match_idx = df.query(query_str).index
-        non_match_idx = df.index.difference(match_idx)
+            Parameters:
+            -----------
+            column : str
+                The name of the column to update or create.
+            query_str : str
+                A pandas query string defining the condition for rows to update.
+            value : scalar or array-like
+                The new value(s) to assign to rows where the condition is True.
+            other : scalar or array-like, optional
+                The new value(s) to assign to rows where the condition is False.
+            inplace : bool, default False
+                If True, modify the DataFrame in place and return None.
+                If False, return a modified copy of the DataFrame.
 
-        df.loc[match_idx, column] = value
-        if other is not None:
-            df.loc[non_match_idx, column] = other
+            Returns:
+            --------
+            pd.DataFrame or None
+                Returns the modified copy if `inplace=False`, otherwise returns None.
+            """
+            if not isinstance(inplace, bool):
+                raise TypeError(f"'inplace' must be a bool, got {type(inplace).__name__}")
 
-        if not inplace:
-            return df
+            df = self._obj
+            
+            if not inplace:
+                df = df.copy()
+
+            match_idx = df.query(query_str).index
+            non_match_idx = df.index.difference(match_idx)
+
+            df.loc[match_idx, column] = value
+            if other is not None:
+                df.loc[non_match_idx, column] = other
+
+            if not inplace:
+                return df

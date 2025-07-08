@@ -12,13 +12,15 @@ classifiers = [
 ]
 
 authors = [
-    { name = "Jeroen van Raak", email = "j.j.f.vanraak@uva.nl" }
+    { name = "Jeroen van Raak", email = "jeroen@vanraak.net" }
 ]
 
 urls = { Homepage = "https://github.com/vanraak/pychemist" }
 
 dependencies = [
-    "pandas>=2.0"
+    "pandas>=2.0",
+    "statsmodels",
+    "scipy"	
 ]
 
 [tool.pytest.ini_options]
