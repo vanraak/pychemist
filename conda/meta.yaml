@@ -1,11 +1,14 @@
 {% set name = "pychemist" %}
-# Fixed version hardcoded to avoid environment issues
+{% set version = "0.0.2" %}
+
 package:
   name: {{ name|lower }}
-  version: 0.0.2
+  version: {{ version }}
 
 source:
-  path: ../  
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/pychemist-{{ version }}.tar.gz
+  sha256: 943ea5c9f72657bcead07c8790720397722b31070f2b82798c0dd0333367c63f
+
 build:
   noarch: python
   script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
@@ -18,6 +21,8 @@ requirements:
   run:
     - python >=3.8
     - pandas >=2.0
+    - statsmodels
+    - scipy
 
 test:
   imports:
