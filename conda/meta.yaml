@@ -1,12 +1,11 @@
 {% set name = "pychemist" %}
-#{% set version = os.environ.get("RELEASE_VERSION", "0.0.0") %}
-
+# Fixed version hardcoded to avoid environment issues
 package:
   name: {{ name|lower }}
-  version: 0.0.2 #{{ version }}
+  version: 0.0.2
 
 source:
-  path: ../  # relative path to your package root (adjust if needed)
+  path: ../  # relative path to your package root
 
 build:
   noarch: python
@@ -33,3 +32,7 @@ about:
   summary: Transform raw data into insights.
   license: MIT
   license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - jraak
