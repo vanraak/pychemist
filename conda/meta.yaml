@@ -1,13 +1,12 @@
 {% set name = "pychemist" %}
-{% set version = os.environ.get("RELEASE_VERSION", "0.0.0") %}
+#{% set version = os.environ.get("RELEASE_VERSION", "0.0.0") %}
 
 package:
   name: {{ name|lower }}
-  version: {{ version }}
+  version: 0.0.2 #{{ version }}
 
 source:
-  git_url: https://github.com/jraak/{{ name }}.git
-  git_tag: v{{ version }}
+  path: ../  # relative path to your package root (adjust if needed)
 
 build:
   noarch: python
