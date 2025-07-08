@@ -5,8 +5,7 @@ package:
   version: 0.0.2
 
 source:
-  path: ../  # relative path to your package root
-
+  path: ../  
 build:
   noarch: python
   script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
