@@ -8,9 +8,9 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    environment: pypi  #
+    environment: pypi
     permissions:
-      id-token: write  #
+      id-token: write
       contents: read
 
     steps:
