@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 import pychemist
 
-def test_pc_mutate_basic():
+def test_chem_mutate_basic():
     df = pd.DataFrame({'A': [1, 2, 3, 4], 'B': ['x', 'y', 'x', 'y']})
 
     # Call the accessor method (returns new df by default)
@@ -14,7 +14,7 @@ def test_pc_mutate_basic():
     # Original df is unchanged since inplace=False by default
     assert list(df['A']) == [1, 2, 3, 4]
 
-def test_pc_mutate_inplace():
+def test_chem_mutate_inplace():
     df = pd.DataFrame({'A': [1, 2], 'B': ['x', 'y']})
 
     ret = df.chem.mutate("B == 'y'", 'A', 99, inplace=True)
@@ -25,13 +25,13 @@ def test_pc_mutate_inplace():
     # Original df is modified
     assert df.loc[1, 'A'] == 99
 
-def test_pc_mutate_invalid_inplace():
+def test_chem_mutate_invalid_inplace():
     df = pd.DataFrame({'A': [1, 2]})
 
     with pytest.raises(TypeError):
         df.chem.mutate("A == 1", 'A', 10, inplace="no")
 
-def test_pc_mutate_other_none():
+def test_chem_mutate_other_none():
     df = pd.DataFrame({'A': [1, 2, 3], 'B': ['x', 'x', 'y']})
 
     out = df.chem.mutate("B == 'x'", 'A', 100, inplace=False)
@@ -39,7 +39,7 @@ def test_pc_mutate_other_none():
     # Rows with B != 'x' remain unchanged
     assert out.loc[2, 'A'] == 3
 
-def test_pc_mutate_creates_column():
+def test_chem_mutate_creates_column():
     df = pd.DataFrame({'A': [1, 2], 'B': ['x', 'y']})
 
     out = df.chem.mutate("B == 'x'", 'C', 50)

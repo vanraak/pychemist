@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import pytest
 
-from pychemist import mutate  # Adjust import if needed
+from pychemist import mutate
 
 def test_mutate_basic():
     df = pd.DataFrame({
