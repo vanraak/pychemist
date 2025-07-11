@@ -1,6 +1,6 @@
 [project]
 name = "Pychemist"
-version = "0.0.3"
+version = "0.0.4"
 description = "Transform raw data into insights."
 readme = "README.md"
 requires-python = ">=3.8"
