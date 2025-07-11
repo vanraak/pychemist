@@ -6,7 +6,48 @@ on:
       - 'v*'
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          pip install -e .[test]  # Assumes your project uses extras for test deps
+          pip install pytest
+
+      - name: Run tests
+        run: pytest
+
+  build:
+    needs: test  # Only runs if test succeeds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Build package
+        run: |
+          pip install build
+          python -m build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
   publish:
+    needs: build  # Only runs if build (and therefore test) succeeds
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
@@ -21,10 +62,11 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: Build package
-        run: |
-          pip install build
-          python -m build
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
