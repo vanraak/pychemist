@@ -152,7 +152,7 @@ with warnings.catch_warnings():
         category=UserWarning,
     )    
     # Define the custom accessor
-    @pd.api.extensions.register_dataframe_accessor("pc")
+    @pd.api.extensions.register_dataframe_accessor("chem")
     class Pd_Pychemist:
         def __init__(self, pandas_obj):
             self._obj = pandas_obj

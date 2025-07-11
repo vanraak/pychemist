@@ -24,34 +24,34 @@ pip install pychemist
 
 ## Usage
 ```python
-import pychemist as pc
+import pychemist as chem
 ```
 
 # Example 1: Lagging a variable
 ```python
-df = pc.time_shift(dataframe=df, variables=["sales","profit"], id="company", time="year", shift=1)
+df = chem.time_shift(dataframe=df, variables=["sales","profit"], id="company", time="year", shift=1)
 ```
 
 # Example 2: Conditional mutation
 ```python
-df = pc.mutate(df, query_str='division == 24 & managerID==15014', "bonus", 1000)
+df = chem.mutate(df, query_str='division == 24 & managerID==15014', "bonus", 1000)
 ```
 
 # Example 3: Conditional mutation using the DataFrame accessor
 ```python
-df=df.pc.mutate('company_id == "8ga62sav" & year==2025', "total_assets", 82000000)
+df=df.chem.mutate('company_id == "8ga62sav" & year==2025', "total_assets", 82000000)
 ```
 
 # Example 4: T-test between treated and control groups
 ```python
-pc.ttest(df, variable="outcome", treatment="treated")
+chem.ttest(df, variable="outcome", treatment="treated")
 ```
 
 # Example 5: Model summary without fixed effects
 ```python
 import statsmodels.formula.api as smf
 model = smf.ols("y ~ x + C(firm)", data=df).fit()
-print(pc.summary_no_fe(model))
+print(chem.summary_no_fe(model))
 ```
 
 
