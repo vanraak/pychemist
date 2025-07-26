@@ -2,7 +2,7 @@ import pandas as pd
 import warnings
 from scipy.stats import ttest_ind
 
-def time_shift(dataframe, variables, id='id', time='time', shift=1):
+def time_shift(dataframe, variables, id, time, shift=1):
     """
     Creates lagged or lead variables for the specified variables in the time series data.
 
@@ -15,16 +15,16 @@ def time_shift(dataframe, variables, id='id', time='time', shift=1):
     dataframe : pandas.DataFrame
         The input DataFrame containing time-series data.
 
-    id : str, optional, default='id'
+    id : str
         The unit or company identifier column name in the DataFrame.
 
-    time : str, optional, default='time'
+    time : str
         The time period identifier column name in the DataFrame.
 
     variables : list of str
         A list of column names for which lagged or lead variables will be created.
 
-    shift : int, optional, default=1
+    shift : int, default=1
         The number of time periods to shift. A positive integer creates lagged variables, while a negative 
         integer creates lead variables.
 
@@ -145,6 +145,8 @@ def mutate(dataframe, query_str, column, value, other=None, *, inplace=False):
     if not inplace:
         return df
 
+
+#Pandas accessors:
 with warnings.catch_warnings():
     warnings.filterwarnings(
         "ignore",
@@ -157,7 +159,7 @@ with warnings.catch_warnings():
         def __init__(self, pandas_obj):
             self._obj = pandas_obj
         
-        def mutate(self, query_str, column, value, other=None, *, inplace=False):
+        def mutate(self, query_str, column, value, other=None):
             """
             Conditionally update values in a DataFrame column based on a query string.
 
@@ -171,23 +173,15 @@ with warnings.catch_warnings():
                 The new value(s) to assign to rows where the condition is True.
             other : scalar or array-like, optional
                 The new value(s) to assign to rows where the condition is False.
-            inplace : bool, default False
-                If True, modify the DataFrame in place and return None.
-                If False, return a modified copy of the DataFrame.
 
             Returns:
             --------
-            pd.DataFrame or None
-                Returns the modified copy if `inplace=False`, otherwise returns None.
+            pd.DataFrame
+                Returns the modified copy.
             """
-            if not isinstance(inplace, bool):
-                raise TypeError(f"'inplace' must be a bool, got {type(inplace).__name__}")
 
-            df = self._obj
+            df = self._obj.copy()
             
-            if not inplace:
-                df = df.copy()
-
             match_idx = df.query(query_str).index
             non_match_idx = df.index.difference(match_idx)
 
@@ -195,5 +189,133 @@ with warnings.catch_warnings():
             if other is not None:
                 df.loc[non_match_idx, column] = other
 
-            if not inplace:
-                return df
+            return df
+            
+
+        def lag(self, variables, identifier, time, shift=1):
+            """
+            Conditionally update values in a DataFrame column based on a query string.
+
+            Parameters:
+            -----------
+            identifier : str
+                The unit or company identifier column name in the DataFrame.
+
+            time : str
+                The time period identifier column name in the DataFrame.
+
+            variables : list of str
+                A list of column names for which lagged or lead variables will be created.
+
+            shift : int, default=1
+                The number of time periods to shift. A positive integer creates lagged variables, while a negative 
+                integer creates lead variables.
+
+            Returns:
+            --------
+            pd.DataFrame
+                Returns the modified copy.
+            """
+
+            #Convert single variable (string) to a list
+            if isinstance(variables,str):
+                variables=[variables]
+
+            if not isinstance(variables,list):
+                raise TypeError("You need to enter a single variable or a list of variables for which lagged variables need to be computed.")
+            
+            df = self._obj.copy() #Prevent the original dataframe from getting modified (shouldn't happen, but as a precaution)
+
+            if not isinstance(shift, int):
+                raise TypeError("Shift value needs to be a positive integer")
+            if shift <= 0:
+                raise ValueError("Shift value needs to be a positive integer.")
+            
+            for var in variables:
+                if var not in df:
+                    raise KeyError(f"The variable `{var}` does not exist in the DataFrame.")
+            
+            df_lag = df[[time] + [identifier] + variables].copy()
+            df_lag[time] = df_lag[time] + shift
+
+            # Handle suffixes for lag/lead columns
+            """if shift > 0:  # Lag
+                suffix = f'_lag{shift}' if shift > 1 else '_lag'
+            elif shift < 0:  # Lead
+                suffix = f'_lead{abs(shift)}' if abs(shift) > 1 else '_lead'
+            """
+
+            suffix = f'_lag{shift}' if shift > 1 else '_lag'
+
+            # Identify the new columns that will be created (for the conflict check)
+            new_columns = [var + suffix for var in variables]
+
+            # Check if any of the new columns already exist in the dataframe
+            conflict_columns = [col for col in new_columns if col in df.columns]
+            
+            if conflict_columns:
+                raise ValueError(f"The following lag/lead columns already exist: {', '.join(conflict_columns)}")
+            
+            # Perform the merge if no conflicts
+            return pd.merge(df, df_lag, how="left", left_on=[identifier, time], right_on=[identifier, time], suffixes=['', suffix])
+        
+        def lead(self, variables, identifier, time, shift=1):
+            """
+            Conditionally update values in a DataFrame column based on a query string.
+
+            Parameters:
+            -----------
+            identifier : str
+                The unit or company identifier column name in the DataFrame.
+
+            time : str
+                The time period identifier column name in the DataFrame.
+
+            variables : list of str
+                A list of column names for which lagged or lead variables will be created.
+
+            shift : int, default=1
+                The number of time periods to shift. A positive integer creates lagged variables, while a negative 
+                integer creates lead variables.
+
+            Returns:
+            --------
+            pd.DataFrame
+                Returns the modified copy.
+            """
+
+            #Convert single variable (string) to a list
+            if isinstance(variables,str):
+                variables=[variables]
+
+            if not isinstance(variables,list):
+                raise TypeError("You need to enter a single variable or a list of variables for which lagged variables need to be computed.")
+            
+            df = self._obj.copy() #Prevent the original dataframe from getting modified (shouldn't happen, but as a precaution)
+
+            if not isinstance(shift, int):
+                raise TypeError("Shift value needs to be a positive integer")
+            if shift <= 0:
+                raise ValueError("Shift value needs to be a positive integer.")
+            
+            for var in variables:
+                if var not in df:
+                    raise KeyError(f"The variable `{var}` does not exist in the DataFrame.")
+            
+            df_lag = df[[time] + [identifier] + variables].copy()
+            df_lag[time] = df_lag[time] - shift #Minus shift to generate lead variables
+
+            # Handle suffixes for lag/lead columns
+            suffix = f'_lead{abs(shift)}' if abs(shift) > 1 else '_lead'
+            
+            # Identify the new columns that will be created (for the conflict check)
+            new_columns = [var + suffix for var in variables]
+
+            # Check if any of the new columns already exist in the dataframe
+            conflict_columns = [col for col in new_columns if col in df.columns]
+            
+            if conflict_columns:
+                raise ValueError(f"The following lag/lead columns already exist: {', '.join(conflict_columns)}")
+            
+            # Perform the merge if no conflicts
+            return pd.merge(df, df_lag, how="left", left_on=[identifier, time], right_on=[identifier, time], suffixes=['', suffix])
