@@ -1,6 +1,6 @@
 [project]
 name = "Pychemist"
-version = "0.0.6"
+version = "0.0.7"
 description = "Transform raw data into insights."
 readme = "README.md"
 requires-python = ">=3.8"
@@ -25,4 +25,12 @@ dependencies = [
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pychemist*"]
+exclude = ["csv", "pickle", "sourcedata"]
 

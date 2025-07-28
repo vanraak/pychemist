@@ -1,6 +1,18 @@
 import pandas as pd
 import warnings
 from scipy.stats import ttest_ind
+import importlib.resources
+
+datasets = [
+    "financials"
+]
+
+def load(name: str) -> pd.DataFrame:
+    if name in datasets:
+        with importlib.resources.files("dsf.data").joinpath(f"{name}.parquet").open("rb") as f:
+            return pd.read_parquet(f)
+    else:
+        raise ValueError(f"Dataset '{name}' does not exist.")
 
 def time_shift(dataframe, variables, id, time, shift=1):
     """
