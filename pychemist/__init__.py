@@ -9,7 +9,7 @@ datasets = [
 
 def load(name: str) -> pd.DataFrame:
     if name in datasets:
-        with importlib.resources.files("dsf.data").joinpath(f"{name}.parquet").open("rb") as f:
+        with importlib.resources.files("pychemist.data").joinpath(f"{name}.parquet").open("rb") as f:
             return pd.read_parquet(f)
     else:
         raise ValueError(f"Dataset '{name}' does not exist.")
