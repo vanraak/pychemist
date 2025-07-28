@@ -3,6 +3,7 @@ build/
 dist/
 pychemist.egg-info/
 .pytest_cache/
+pytest_.bat
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -192,9 +192,9 @@ with warnings.catch_warnings():
             return df
             
 
-        def lag(self, variables, identifier, time, shift=1):
+        def lag(self, variables, identifier, time, shift=1, *, replace=False):
             """
-            Conditionally update values in a DataFrame column based on a query string.
+            Create lagged versions of one or more variables.
 
             Parameters:
             -----------
@@ -211,6 +211,10 @@ with warnings.catch_warnings():
                 The number of time periods to shift. A positive integer creates lagged variables, while a negative 
                 integer creates lead variables.
 
+            replace : bool, optional, default=False
+                Whether to replace existing lagged columns if they already exist.
+                If False, a ValueError will be raised when a conflict is found.
+
             Returns:
             --------
             pd.DataFrame
@@ -223,6 +227,9 @@ with warnings.catch_warnings():
 
             if not isinstance(variables,list):
                 raise TypeError("You need to enter a single variable or a list of variables for which lagged variables need to be computed.")
+            
+            if not isinstance(replace,bool):
+                raise TypeError("The 'replace' argument must be a boolean (True or False).")
             
             df = self._obj.copy() #Prevent the original dataframe from getting modified (shouldn't happen, but as a precaution)
 
@@ -238,13 +245,7 @@ with warnings.catch_warnings():
             df_lag = df[[time] + [identifier] + variables].copy()
             df_lag[time] = df_lag[time] + shift
 
-            # Handle suffixes for lag/lead columns
-            """if shift > 0:  # Lag
-                suffix = f'_lag{shift}' if shift > 1 else '_lag'
-            elif shift < 0:  # Lead
-                suffix = f'_lead{abs(shift)}' if abs(shift) > 1 else '_lead'
-            """
-
+            # Handle suffixes for columns:
             suffix = f'_lag{shift}' if shift > 1 else '_lag'
 
             # Identify the new columns that will be created (for the conflict check)
@@ -254,14 +255,17 @@ with warnings.catch_warnings():
             conflict_columns = [col for col in new_columns if col in df.columns]
             
             if conflict_columns:
-                raise ValueError(f"The following lag/lead columns already exist: {', '.join(conflict_columns)}")
+                if replace==False:
+                    raise ValueError(f"The following lag/lead columns already exist: {', '.join(conflict_columns)}")
+                else:
+                    df=df.drop(columns=conflict_columns)
             
             # Perform the merge if no conflicts
             return pd.merge(df, df_lag, how="left", left_on=[identifier, time], right_on=[identifier, time], suffixes=['', suffix])
         
-        def lead(self, variables, identifier, time, shift=1):
+        def lead(self, variables, identifier, time, shift=1, *, replace=False):
             """
-            Conditionally update values in a DataFrame column based on a query string.
+            Create lead versions of one or more variables.
 
             Parameters:
             -----------
@@ -278,6 +282,10 @@ with warnings.catch_warnings():
                 The number of time periods to shift. A positive integer creates lagged variables, while a negative 
                 integer creates lead variables.
 
+            replace : bool, optional, default=False
+                Whether to replace existing lead columns if they already exist.
+                If False, a ValueError will be raised when a conflict is found.
+
             Returns:
             --------
             pd.DataFrame
@@ -290,6 +298,9 @@ with warnings.catch_warnings():
 
             if not isinstance(variables,list):
                 raise TypeError("You need to enter a single variable or a list of variables for which lagged variables need to be computed.")
+            
+            if not isinstance(replace,bool):
+                raise TypeError("The 'replace' argument must be a boolean (True or False).")
             
             df = self._obj.copy() #Prevent the original dataframe from getting modified (shouldn't happen, but as a precaution)
 
@@ -305,8 +316,8 @@ with warnings.catch_warnings():
             df_lag = df[[time] + [identifier] + variables].copy()
             df_lag[time] = df_lag[time] - shift #Minus shift to generate lead variables
 
-            # Handle suffixes for lag/lead columns
-            suffix = f'_lead{abs(shift)}' if abs(shift) > 1 else '_lead'
+            # Handle suffixes for columns:
+            suffix = f'_lead{shift}' if shift > 1 else '_lead'
             
             # Identify the new columns that will be created (for the conflict check)
             new_columns = [var + suffix for var in variables]
@@ -315,7 +326,10 @@ with warnings.catch_warnings():
             conflict_columns = [col for col in new_columns if col in df.columns]
             
             if conflict_columns:
-                raise ValueError(f"The following lag/lead columns already exist: {', '.join(conflict_columns)}")
+                if replace==False:
+                    raise ValueError(f"The following lag/lead columns already exist: {', '.join(conflict_columns)}")
+                else:
+                    df=df.drop(columns=conflict_columns)
             
             # Perform the merge if no conflicts
             return pd.merge(df, df_lag, how="left", left_on=[identifier, time], right_on=[identifier, time], suffixes=['', suffix])
