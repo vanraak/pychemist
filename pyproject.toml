@@ -1,6 +1,5 @@
 [project]
 name = "Pychemist"
-version = "0.0.10"
 description = "Transform raw data into insights."
 readme = "README.md"
 requires-python = ">=3.8"
@@ -23,11 +22,16 @@ dependencies = [
     "scipy"	
 ]
 
+dynamic = ["version"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 
 [tool.setuptools]
 include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { attr = "pychemist.version.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -2,6 +2,7 @@ import pandas as pd
 import warnings
 from scipy.stats import ttest_ind
 import importlib.resources
+from .version import __version__
 
 datasets = [
     "financials"
