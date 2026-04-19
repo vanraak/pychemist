@@ -6,12 +6,6 @@ from .version import __version__
 
 datasets = ["financials"]
 
-from IPython.display import HTML, display
-from IPython import get_ipython
-
-_ip = get_ipython()
-_cb = None  # store current callback
-
 
 def load(name: str) -> pd.DataFrame:
     if name in datasets:
@@ -409,17 +403,25 @@ with warnings.catch_warnings():
 
 
 def output_size(px=20):
-    global _cb
+    try:
+        from IPython.display import HTML, display
+        from IPython import get_ipython
+    except ImportError:
+        return  # silently do nothing if not in IPython
 
-    if _ip is None:
-        return
+    ip = get_ipython()
+    if ip is None:
+        raise RuntimeError("output_size() only works in an IPython environment")
 
-    # remove previous callback if it exists
-    if _cb and _cb in _ip.events.callbacks["pre_execute"]:
-        _ip.events.unregister("pre_execute", _cb)
+    # store callback on the function itself (avoids global)
+    if hasattr(output_size, "_cb"):
+        try:
+            ip.events.unregister("pre_execute", output_size._cb)
+        except Exception:
+            pass
 
     def _cb_func():
         display(HTML(f"<style>body{{font-size:{px}px}}</style>"))
 
-    _cb = _cb_func
-    _ip.events.register("pre_execute", _cb)
+    output_size._cb = _cb_func
+    ip.events.register("pre_execute", _cb_func)
