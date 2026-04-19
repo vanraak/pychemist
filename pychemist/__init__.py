@@ -407,13 +407,12 @@ def output_size(px=20):
         from IPython.display import HTML, display
         from IPython import get_ipython
     except ImportError:
-        return  # silently do nothing if not in IPython
+        return
 
     ip = get_ipython()
     if ip is None:
         raise RuntimeError("output_size() only works in an IPython environment")
 
-    # store callback on the function itself (avoids global)
     if hasattr(output_size, "_cb"):
         try:
             ip.events.unregister("pre_execute", output_size._cb)
